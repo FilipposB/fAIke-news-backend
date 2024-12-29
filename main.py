@@ -1,7 +1,6 @@
 import article_prompt
 from flask import Flask, jsonify
 from pymongo import MongoClient
-import yaml
 from bson.json_util import dumps
 from functools import lru_cache
 from flask_cors import CORS
@@ -54,4 +53,7 @@ def handle_path_variable(article):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    from waitress import serve
+
+    serve(app, host="0.0.0.0", port=5000)
+    app.run()
