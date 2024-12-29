@@ -18,9 +18,9 @@ def is_version_valid(article):
     return article_version == VERSION or article_version in OLDER_SUPPORTED_VERSIONS
 
 
-def extract_article(api_key, topic, word_limit=6000, mock=False):
+def extract_article(api_key, api_key_gog, cse_id, topic, word_limit=6000, mock=False):
     secure_prompt = SecurePromptLibrary(api_key=api_key,  word_limit=word_limit)
-    google_image_api = GoogleImageApi('AIzaSyBHn9rsaz9Wy7yZOCDohoP-vyYFxH_XIm4', '043c38dafee9e4b37')
+    google_image_api = GoogleImageApi(api_key_gog, cse_id)
 
     rules = [
         "ADD A TITLE FOR THE ARTICLE",

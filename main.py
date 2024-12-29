@@ -4,18 +4,26 @@ from pymongo import MongoClient
 import yaml
 from bson.json_util import dumps
 from functools import lru_cache
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
+from pymongo.server_api import ServerApi
+import os
 
 app = Flask(__name__)
 cors = CORS(app)
 
+uri = f'mongodb+srv://filipposbagordakis:{os.environ["DB_PASSWORD"]}@theater-book.dnfffff.mongodb.net/?retryWrites=true&w=majority&appName=Theater-Book'
+# Create a new client and connect to the server
+client = MongoClient(uri, server_api=ServerApi('1'))
 
-client = MongoClient("mongodb://localhost:27017/")
+# Send a ping to confirm a successful connection
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+
 db = client["fake_news"]
 collection = db["articles"]
-
-with open('properties.yml', 'r') as file:
-    properties = yaml.safe_load(file)
 
 
 @app.route('/api/news/<article>', methods=['GET'])
@@ -30,7 +38,8 @@ def handle_path_variable(article):
         return dumps(article_document)
 
     try:
-        response = article_prompt.extract_article(properties['gemini']['api-key'], article, mock=False, word_limit=1000)
+        response = article_prompt.extract_article(os.environ['API_KEY_GEM'], os.environ['API_KEY_GOG'],
+                                                  os.environ['CSE_ID'], article, mock=False, word_limit=1000)
 
         if not response:
             raise Exception('No Response')
