@@ -1,3 +1,5 @@
+import time
+
 import article_prompt
 from flask import Flask, jsonify
 from pymongo import MongoClient
@@ -6,9 +8,14 @@ from functools import lru_cache
 from flask_cors import CORS
 from pymongo.server_api import ServerApi
 import os
+from pymongo import DESCENDING
+from flask_caching import Cache
 
 app = Flask(__name__)
 cors = CORS(app)
+app.config['CACHE_TYPE'] = 'SimpleCache'  # Use simple in-memory cache
+app.config['CACHE_DEFAULT_TIMEOUT'] = 5  # Cache timeout in seconds
+cache = Cache(app)
 
 uri = f'mongodb+srv://filipposbagordakis:{os.environ["DB_PASSWORD"]}@theater-book.dnfffff.mongodb.net/?retryWrites=true&w=majority&appName=Theater-Book'
 # Create a new client and connect to the server
@@ -31,8 +38,10 @@ def handle_path_variable(article):
 
     print(f'Fetching Article {article}')
 
-    article_document = collection.find_one({"topic": article})
-
+    article_document = collection.find_one(
+        {"topic": article},
+        sort=[("version", DESCENDING)]
+    )
     if article_document and article_prompt.is_version_valid(article_document):
         return dumps(article_document)
 
@@ -50,6 +59,25 @@ def handle_path_variable(article):
     except Exception as e:
         print(f"Error occurred: {e}")
         return jsonify({"error": "An error occurred while fetching or saving the article."}), 500
+
+
+@app.route('/api/recent-news', methods=['GET'])
+@cache.cached(timeout=5)  # Cache the result for 5 seconds
+def handle_recent_news():
+    articles = collection.find().sort(
+        [("_id", DESCENDING)]
+    ).limit(10)
+
+    valid_articles = []
+
+    for article_document in articles:
+        if article_document and article_prompt.is_version_valid(article_document):
+            valid_articles.append(article_document)
+
+    if valid_articles:
+        return dumps(valid_articles)
+    else:
+        return jsonify({"error": "No recent articles"}), 500
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ import json
 from google_image_api import GoogleImageApi
 from secure_prompt import SecurePromptLibrary
 
-VERSION = '0.0.1'
+VERSION = '0.0.4'
 
 OLDER_SUPPORTED_VERSIONS = [
 
@@ -23,7 +23,6 @@ def extract_article(api_key, api_key_gog, cse_id, topic, word_limit=6000, mock=F
     google_image_api = GoogleImageApi(api_key_gog, cse_id)
 
     rules = [
-        "ADD A TITLE FOR THE ARTICLE",
         "INCLUDE ZERO TO FIVE TESTIMONIES FROM INTERVIEWS DEPENDING ON THE CONTEXT, MAKE THEM APPEAR NATURAL OR LIKE REFERENCES",
         "FORM PROPER PARAGRAPHS",
         "MAKE IT REALLY INTERESTING",
@@ -31,7 +30,7 @@ def extract_article(api_key, api_key_gog, cse_id, topic, word_limit=6000, mock=F
         "KEEP EVERYTHING IN THE REAL WORLD, EVEN IF THE TOPIC DOESN'T SOUND REALISTIC",
         "KEEP THE TONE OF THE TEXT ALMOST IRONICAL",
         "ENSURE AUTHOR NAME IS FAKE",
-        "OUTPUT THE RESULT IN JSON FORMAT WITH THE FOLLOWING FIELDS: title, article_body,keywords,author,google_image_query. THE RESPONSE MUST START WITH '{' AND END WITH '}', AND IT MUST BE VALID JSON. KEYWORDS SHOULD HELP USERS FIND THE ARTICLE. GOOGLE IMAGE QUERY SHOULD BE A QUERY THAT IS LIKELY TO RETURN A RELATIVE IMAGE"
+        "OUTPUT THE RESULT IN JSON FORMAT WITH THE FOLLOWING FIELDS:  headline, article_body, keywords,author,google_image_query. THE RESPONSE MUST START WITH '{' AND END WITH '}', AND IT MUST BE VALID JSON. KEYWORDS SHOULD HELP USERS FIND THE ARTICLE. GOOGLE IMAGE QUERY SHOULD BE A QUERY THAT IS LIKELY TO RETURN A RELATIVE IMAGE. HEADLINE SHOULD BE LIKE A HEADLINE IN A NEWS ARTICLE"
     ]
 
     # Generate and print the content
