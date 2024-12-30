@@ -32,9 +32,6 @@ class SecurePromptLibrary:
         if not topic or len(topic) > 150:
             raise ValueError("Invalid topic: must be between 1 and 150 characters.")
 
-        if not re.match(r"^[a-zA-Z0-9 .,!?'-]+$", topic):
-            raise ValueError("Invalid topic: contains unsupported characters.")
-
         return topic.strip()
 
     def format_rules(self, rules):
