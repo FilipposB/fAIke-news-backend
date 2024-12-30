@@ -104,15 +104,12 @@ def handle_recent_news():
 
 
 @app.route("/api/search", methods=["GET"])
+@cache.cached(timeout=15, query_string=True)
 def search_articles():
     query = request.args.get("q", "").strip().lower()
 
     if not query:
         return jsonify({"error": "Query parameter 'q' is required"}), 400
-
-    cached_results = cache.get(query)
-    if cached_results:
-        return jsonify(cached_results)
 
     # Query MongoDB
     search_results = list(articles_collection.find({
@@ -126,8 +123,7 @@ def search_articles():
     },
     ))
 
-    # Cache the results
-    cache.set(query, search_results)
+    # Cache the resul
 
     # Return the results
     return dumps(search_results)
