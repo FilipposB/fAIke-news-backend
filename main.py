@@ -9,13 +9,16 @@ from pymongo.server_api import ServerApi
 import os
 from pymongo import DESCENDING
 from flask_caching import Cache
+import re
+import unicodedata
+
+from google_image_api import GoogleImageApi
 
 app = Flask(__name__)
 cors = CORS(app)
 app.config['CACHE_TYPE'] = 'SimpleCache'  # Use simple in-memory cache
 app.config["CACHE_DEFAULT_TIMEOUT"] = 300
 cache = Cache(app)
-
 
 uri = f'mongodb+srv://filipposbagordakis:{os.environ["DB_PASSWORD"]}@theater-book.dnfffff.mongodb.net/?retryWrites=true&w=majority&appName=Theater-Book'
 # Create a new client and connect to the server
@@ -32,9 +35,23 @@ db = client["fake_news"]
 articles_collection = db["articles"]
 
 
+def friendly_url(text: str) -> str:
+    text = text.lower().strip()
+    text = unicodedata.normalize('NFD', text)
+    text = ''.join(c for c in text if unicodedata.category(c) != 'Mn')  # Remove diacritics
+    text = re.sub(r'[^a-z0-9]+', '-', text)
+    return text.strip('-')
+
+
+def unfriendly_url(friendly: str) -> str:
+    return friendly.replace('-', ' ').title()
+
+
 @app.route('/api/news/<article>', methods=['GET'])
 @cache.cached(timeout=60)
 def handle_path_variable(article):
+
+    article = friendly_url(article)
 
     print(f'Fetching Article {article}')
 
@@ -44,7 +61,7 @@ def handle_path_variable(article):
     }
 
     article_document = articles_collection.find_one(
-        {"headline": {"$regex": article, "$options": "i"},
+        {"topic": {"$regex": article, "$options": "i"},
          "version": {"$in": article_prompt.SUPPORTED_VERSIONS}},
         sort=[("version", DESCENDING)],
         collation=collation
@@ -55,7 +72,8 @@ def handle_path_variable(article):
 
     try:
         response = article_prompt.extract_article(os.environ['API_KEY_GEM'], os.environ['API_KEY_GOG'],
-                                                  os.environ['CSE_ID'], article, mock=False, word_limit=1000)
+                                                  os.environ['CSE_ID'], article, unfriendly_url(article),
+                                                  mock=False, word_limit=1000)
 
         if not response:
             raise Exception('No Response')

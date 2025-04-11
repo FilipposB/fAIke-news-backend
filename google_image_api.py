@@ -32,9 +32,15 @@ class GoogleImageApi:
         if response.status_code == 200:
             data = response.json()
             if 'items' in data:
-                return data['items'][0]['link']  # Return the URL of the first image
-            else:
-                print("No images found.")
+                for i in range(0, len(data['items'])):
+                    try:
+                        image_response = requests.get(data['items'][i]['link'])
+                        print(f'''Attempting Image {data['items'][i]['link']} resulted in {image_response.status_code}''')
+                        if image_response.status_code == 200:
+                            return data['items'][i]['link']
+                    except:
+                        pass
+            print("No images found.")
         else:
             print(f"Error {response.status_code}: {response.text}")
 
