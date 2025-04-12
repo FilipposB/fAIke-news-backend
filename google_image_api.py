@@ -34,10 +34,14 @@ class GoogleImageApi:
             if 'items' in data:
                 for i in range(0, len(data['items'])):
                     try:
-                        image_response = requests.get(data['items'][i]['link'])
-                        print(f'''Attempting Image {data['items'][i]['link']} resulted in {image_response.status_code}''')
+                        url = data['items'][i]['link']
+                        image_response = requests.get(url, allow_redirects=True)
+                        print(f"Attempting Image {url} resulted in {image_response.status_code}")
+
                         if image_response.status_code == 200:
-                            return data['items'][i]['link']
+                            content_type = image_response.headers.get('Content-Type', '')
+                            if content_type.startswith('image/'):
+                                return data['items'][i]['link']
                     except:
                         pass
             print("No images found.")
